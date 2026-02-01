@@ -180,7 +180,7 @@ const Charts = {
     // Load history chart with specified range
     async loadHistoryChart(range = '24h') {
         try {
-            const response = await fetch(`/api/history.php?range=${range}`);
+            const response = await fetch(`../api/history.php?range=${range}`);
             const data = await response.json();
 
             if (!data.success) throw new Error(data.error);
