@@ -254,7 +254,7 @@ const App = {
                         ${sensor.humidity}%
                     </div>
                 ` : ''}
-                <div class="sensor-time">${this.formatTime(sensor.datetime)}</div>
+                <div class="sensor-time">${this.formatTimestamp(sensor.timestamp)}</div>
             </div>
         `;
     },
@@ -312,9 +312,20 @@ const App = {
         }
     },
 
-    // Format time for display
+    // Format time for display (from date string)
     formatTime(dateString) {
         const date = new Date(dateString);
+        return date.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+    },
+
+    // Format time from Unix timestamp (seconds)
+    formatTimestamp(timestamp) {
+        // Convert Unix timestamp (seconds) to JavaScript Date (milliseconds)
+        const date = new Date(timestamp * 1000);
         return date.toLocaleTimeString('en-US', {
             hour: 'numeric',
             minute: '2-digit',
