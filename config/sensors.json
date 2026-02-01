@@ -1,0 +1,53 @@
+{
+    "database_path": "/var/lib/weewx/weewx.sdb",
+    "home_name": "38 Mishawum",
+    "sensors": [
+        {
+            "id": "kitchen",
+            "name": "Kitchen",
+            "icon": "kitchen",
+            "temp_field": "inTemp",
+            "humidity_field": "inHumidity",
+            "location": "downstairs",
+            "thresholds": {
+                "temp_min": 62,
+                "temp_max": 78,
+                "humidity_min": 30,
+                "humidity_max": 60
+            }
+        },
+        {
+            "id": "bedroom2",
+            "name": "2nd Bedroom",
+            "icon": "bed",
+            "temp_field": "extraTemp1",
+            "humidity_field": "extraHumid1",
+            "location": "upstairs",
+            "thresholds": {
+                "temp_min": 62,
+                "temp_max": 78,
+                "humidity_min": 30,
+                "humidity_max": 60
+            }
+        },
+        {
+            "id": "edwins_room",
+            "name": "Edwin's Room",
+            "icon": "bed",
+            "temp_field": "extraTemp2",
+            "humidity_field": "extraHumid2",
+            "location": "upstairs",
+            "thresholds": {
+                "temp_min": 62,
+                "temp_max": 78,
+                "humidity_min": 30,
+                "humidity_max": 60
+            }
+        }
+    ],
+    "notification_settings": {
+        "check_interval_minutes": 5,
+        "cooldown_minutes": 30,
+        "enabled": true
+    }
+}
