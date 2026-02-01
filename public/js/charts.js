@@ -115,7 +115,7 @@ const Charts = {
     // Load quick chart (6-hour overview on dashboard)
     async loadQuickChart() {
         try {
-            const response = await fetch('/api/history.php?range=6h');
+            const response = await fetch('../api/history.php?range=6h');
             const data = await response.json();
 
             if (!data.success) throw new Error(data.error);

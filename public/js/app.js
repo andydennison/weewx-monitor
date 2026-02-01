@@ -81,7 +81,7 @@ const App = {
     async registerServiceWorker() {
         if ('serviceWorker' in navigator) {
             try {
-                const registration = await navigator.serviceWorker.register('/sw.js');
+                const registration = await navigator.serviceWorker.register('sw.js');
                 console.log('[App] Service worker registered:', registration.scope);
 
                 // Check for updates
@@ -193,7 +193,7 @@ const App = {
         try {
             this.elements.refreshBtn.classList.add('spinning');
 
-            const response = await fetch('/api/sensors.php');
+            const response = await fetch('../api/sensors.php');
             const data = await response.json();
 
             if (!data.success) {
@@ -335,7 +335,7 @@ const App = {
     // Load threshold settings
     async loadThresholdSettings() {
         try {
-            const response = await fetch('/api/thresholds.php');
+            const response = await fetch('../api/thresholds.php');
             const data = await response.json();
 
             if (!data.success) throw new Error(data.error);
@@ -398,7 +398,7 @@ const App = {
         }
 
         try {
-            const response = await fetch('/api/thresholds.php', {
+            const response = await fetch('../api/thresholds.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -428,7 +428,7 @@ const App = {
     // Save notification settings
     async saveNotificationSettings() {
         try {
-            const response = await fetch('/api/thresholds.php', {
+            const response = await fetch('../api/thresholds.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -503,7 +503,7 @@ const App = {
             // Full push notifications would require VAPID keys and a push service
 
             // Save subscription to server
-            await fetch('/api/subscribe.php', {
+            await fetch('../api/subscribe.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -534,7 +534,7 @@ const App = {
             if (!this.state.notificationsEnabled) return;
 
             try {
-                const response = await fetch('/api/sensors.php');
+                const response = await fetch('../api/sensors.php');
                 const data = await response.json();
 
                 if (data.alerts && data.alerts.length > 0) {

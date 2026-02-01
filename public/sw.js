@@ -3,14 +3,14 @@
  * Handles caching, offline support, and push notifications
  */
 
-const CACHE_NAME = 'temp-monitor-v1';
+const CACHE_NAME = 'temp-monitor-v2';
 const STATIC_ASSETS = [
-    '/',
-    '/index.html',
-    '/css/style.css',
-    '/js/app.js',
-    '/js/charts.js',
-    '/manifest.json'
+    './',
+    './index.html',
+    './css/style.css',
+    './js/app.js',
+    './js/charts.js',
+    './manifest.json'
 ];
 
 // Install event - cache static assets
@@ -47,8 +47,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // Always fetch API requests from network
-    if (url.pathname.startsWith('/api/')) {
+    // Always fetch API requests from network (check for /api/ anywhere in path)
+    if (url.pathname.includes('/api/')) {
         event.respondWith(
             fetch(event.request)
                 .catch(() => {
@@ -95,8 +95,8 @@ self.addEventListener('push', (event) => {
     let data = {
         title: 'Temperature Alert',
         body: 'Check your home temperatures',
-        icon: '/icons/icon-192.png',
-        badge: '/icons/icon-72.png',
+        icon: './icons/icon-192.png',
+        badge: './icons/icon-72.png',
         tag: 'temp-alert',
         requireInteraction: true
     };
@@ -149,7 +149,7 @@ self.addEventListener('notificationclick', (event) => {
                 }
                 // Otherwise open a new window
                 if (clients.openWindow) {
-                    return clients.openWindow('/');
+                    return clients.openWindow('./');
                 }
             })
     );
@@ -172,7 +172,7 @@ self.addEventListener('periodicsync', (event) => {
 // Check temperatures and send notifications if thresholds exceeded
 async function checkTemperatures() {
     try {
-        const response = await fetch('/api/sensors.php');
+        const response = await fetch('../api/sensors.php');
         const data = await response.json();
 
         if (data.alerts && data.alerts.length > 0) {
@@ -180,8 +180,8 @@ async function checkTemperatures() {
             for (const alert of data.alerts) {
                 await self.registration.showNotification('Temperature Alert', {
                     body: alert.message,
-                    icon: '/icons/icon-192.png',
-                    badge: '/icons/icon-72.png',
+                    icon: './icons/icon-192.png',
+                    badge: './icons/icon-72.png',
                     tag: `alert-${alert.sensor_id}`,
                     requireInteraction: true,
                     vibrate: [200, 100, 200],
