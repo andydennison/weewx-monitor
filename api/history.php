@@ -7,6 +7,9 @@
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
 
 // Get parameters
 $sensorId = isset($_GET['sensor']) ? $_GET['sensor'] : 'all';
