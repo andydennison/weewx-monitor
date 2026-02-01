@@ -254,7 +254,7 @@ const App = {
                         ${sensor.humidity}%
                     </div>
                 ` : ''}
-                <div class="sensor-time">${this.formatTime(sensor.datetime)}</div>
+                <div class="sensor-time">${this.formatTimestamp(sensor.timestamp)}</div>
             </div>
         `;
     },
@@ -312,9 +312,20 @@ const App = {
         }
     },
 
-    // Format time for display
+    // Format time for display (from date string)
     formatTime(dateString) {
         const date = new Date(dateString);
+        return date.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+    },
+
+    // Format time from Unix timestamp (seconds)
+    formatTimestamp(timestamp) {
+        // Convert Unix timestamp (seconds) to JavaScript Date (milliseconds)
+        const date = new Date(timestamp * 1000);
         return date.toLocaleTimeString('en-US', {
             hour: 'numeric',
             minute: '2-digit',
@@ -449,6 +460,12 @@ const App = {
         }
     },
 
+    // Check if running as installed PWA
+    isStandalone() {
+        return window.matchMedia('(display-mode: standalone)').matches ||
+               window.navigator.standalone === true;
+    },
+
     // Check notification permission
     checkNotificationPermission() {
         if ('Notification' in window) {
@@ -460,8 +477,28 @@ const App = {
 
     // Request notification permission
     async requestNotificationPermission() {
+        // Check for HTTPS (required for notifications)
+        const isSecure = location.protocol === 'https:' || location.hostname === 'localhost';
+
+        if (!isSecure) {
+            this.showToast('HTTPS required for notifications', 'error');
+            this.elements.notificationsToggle.checked = false;
+            return;
+        }
+
+        // Check if Notification API is available
         if (!('Notification' in window)) {
-            this.showToast('Notifications not supported', 'error');
+            // Provide helpful message based on context
+            if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                if (!this.isStandalone()) {
+                    this.showToast('Add to Home Screen first, then enable notifications', 'error');
+                } else {
+                    this.showToast('Notifications require iOS 16.4+', 'error');
+                }
+            } else {
+                this.showToast('Notifications not supported in this browser', 'error');
+            }
+            this.elements.notificationsToggle.checked = false;
             return;
         }
 
@@ -486,6 +523,7 @@ const App = {
         } catch (error) {
             console.error('[App] Error requesting notification permission:', error);
             this.elements.notificationsToggle.checked = false;
+            this.showToast('Could not enable notifications', 'error');
         }
     },
 
