@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#4a90d9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TempMon">
+    <meta name="description" content="Monitor home temperatures with alerts and historical trends">
+
+    <title>Home Temperature Monitor</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/icons/icon-152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-72.png">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 id="home-name">Home Temperature</h1>
+                <div class="header-actions">
+                    <button id="refresh-btn" class="icon-btn" aria-label="Refresh">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 4v6h-6M1 20v-6h6"/>
+                            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                        </svg>
+                    </button>
+                    <button id="notifications-btn" class="icon-btn" aria-label="Enable notifications">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 01-3.46 0"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="last-update" class="last-update">Loading...</div>
+        </header>
+
+        <!-- Alert Banner -->
+        <div id="alert-banner" class="alert-banner hidden">
+            <div class="alert-content">
+                <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span id="alert-message"></span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard View -->
+            <section id="dashboard-view" class="view active">
+                <!-- Temperature Cards -->
+                <div id="sensor-cards" class="sensor-grid">
+                    <!-- Cards will be inserted here by JavaScript -->
+                </div>
+
+                <!-- Floor Differential -->
+                <div id="differential-card" class="differential-card">
+                    <h3>Floor Temperature Difference</h3>
+                    <div class="differential-content">
+                        <div class="floor-temp">
+                            <span class="floor-label">Upstairs</span>
+                            <span id="upstairs-avg" class="floor-value">--</span>
+                        </div>
+                        <div class="differential-indicator">
+                            <span id="differential-value" class="diff-value">--</span>
+                            <span class="diff-label">difference</span>
+                        </div>
+                        <div class="floor-temp">
+                            <span class="floor-label">Downstairs</span>
+                            <span id="downstairs-avg" class="floor-value">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Chart -->
+                <div class="quick-chart-card">
+                    <div class="card-header">
+                        <h3>Last 6 Hours</h3>
+                        <button id="view-history-btn" class="text-btn">View More</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="quick-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- History View -->
+            <section id="history-view" class="view">
+                <div class="history-controls">
+                    <div class="time-range-selector">
+                        <button class="range-btn active" data-range="6h">6H</button>
+                        <button class="range-btn" data-range="12h">12H</button>
+                        <button class="range-btn" data-range="24h">24H</button>
+                        <button class="range-btn" data-range="7d">7D</button>
+                        <button class="range-btn" data-range="30d">30D</button>
+                    </div>
+                </div>
+
+                <div class="history-chart-card">
+                    <h3>Temperature Trends</h3>
+                    <div class="chart-container large">
+                        <canvas id="history-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="stats-grid" id="stats-grid">
+                    <!-- Stats cards will be inserted here -->
+                </div>
+            </section>
+
+            <!-- Settings View -->
+            <section id="settings-view" class="view">
+                <div class="settings-section">
+                    <h2>Temperature Thresholds</h2>
+                    <p class="settings-description">Set alert thresholds for each sensor. You'll be notified when temperatures go outside these ranges.</p>
+
+                    <div id="threshold-settings" class="threshold-list">
+                        <!-- Threshold cards will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h2>Notifications</h2>
+
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <span class="setting-label">Push Notifications</span>
+                            <span class="setting-description">Receive alerts on your device</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="notifications-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <span class="setting-label">Check Interval</span>
+                            <span class="setting-description">How often to check for alerts</span>
+                        </div>
+                        <select id="check-interval" class="setting-select">
+                            <option value="1">1 minute</option>
+                            <option value="5">5 minutes</option>
+                            <option value="10">10 minutes</option>
+                            <option value="15">15 minutes</option>
+                            <option value="30">30 minutes</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <span class="setting-label">Alert Cooldown</span>
+                            <span class="setting-description">Minimum time between repeated alerts</span>
+                        </div>
+                        <select id="cooldown-interval" class="setting-select">
+                            <option value="15">15 minutes</option>
+                            <option value="30">30 minutes</option>
+                            <option value="60">1 hour</option>
+                            <option value="120">2 hours</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h2>About</h2>
+                    <div class="about-info">
+                        <p><strong>Home Temperature Monitor</strong></p>
+                        <p>Version 1.0.0</p>
+                        <p>Powered by WeeWX</p>
+                    </div>
+                    <button id="install-btn" class="primary-btn hidden">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Install App
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-view="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-btn" data-view="history">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+                <span>Trends</span>
+            </button>
+            <button class="nav-btn" data-view="settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+                </svg>
+                <span>Settings</span>
+            </button>
+        </nav>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="loading-spinner"></div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden"></div>
+    </div>
+
+    <!-- App Scripts -->
+    <script src="/js/app.js"></script>
+    <script src="/js/charts.js"></script>
+</body>
+</html>
